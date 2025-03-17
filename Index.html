@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Mini App</title>
+
+    <!-- Script de anúncios de forma assíncrona -->
+    <script async src='//whephiwums.com/sdk.js' data-zone='9094972' data-sdk='show_9094972'></script>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; }
+        button { padding: 10px 20px; font-size: 18px; margin-top: 10px; }
+        .points { font-size: 24px; color: green; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Olá, <span id="user"></span>!</h1>
+    <div class="points">
+        Pontos: <span id="pontos">0.000</span> €
+    </div>
+    <button onclick="fecharApp()">Fechar App</button>
+    
+    <!-- Botões para exibir os anúncios -->
+    <button onclick="mostrarPopup()">Mostrar Popup</button>
+    <button onclick="mostrarPopupRecompensa()">Assistir Anúncio (Rewarded)</button>
+    <button onclick="exibirInterstitial()">Mostrar Anúncio In-App</button>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand(); // Expande o Mini App
+        
+        // Exibe o nome do usuário ou "Usuário"
+        document.getElementById("user").innerText = tg.initDataUnsafe?.user?.first_name || "Usuário";
+
+        // Carrega os pontos salvos ou inicia com 0
+        let pontos = parseFloat(localStorage.getItem('pontos')) || 0;
+        atualizarPontos();
+
+        function fecharApp() {
+            tg.close();
+        }
+
+        // Atualiza a exibição dos pontos
+        function atualizarPontos() {
+            document.getElementById("pontos").innerText = pontos.toFixed(3);
+        }
+
+        // Salva os pontos no localStorage
+        function salvarPontos() {
+            localStorage.setItem('pontos', pontos.toFixed(3));
+        }
+
+        // Função para exibir o Popup Recompensado
+        function mostrarPopup() {
+            show_9094972('pop').then(() => {
+                alert('Você assistiu ao Popup!');
+            }).catch(e => {
+                console.error("Erro ao carregar o Popup: ", e);
+                alert("Houve um erro ao tentar exibir o Popup.");
+            });
+        }
+
+        // Função para exibir o anúncio de recompensa e adicionar pontos
+        function mostrarPopupRecompensa() {
+            show_9094972().then(() => {
+                // Adiciona 0.005 pontos
+                pontos += 0.005;
+                atualizarPontos();
+                salvarPontos();
+                alert('Você assistiu ao anúncio e ganhou 0.005 €!');
+            }).catch(e => {
+                console.error("Erro ao carregar o anúncio recompensado: ", e);
+                alert("Houve um erro ao tentar exibir o anúncio recompensado.");
+            });
+        }
+
+        // Função para exibir o anúncio In-App Interstitial
+        function exibirInterstitial() {
+            show_9094972({
+                type: 'inApp',
+                inAppSettings: { 
+                    frequency: 2, 
+                    capping: 0.1, 
+                    interval: 30, 
+                    timeout: 5, 
+                    everyPage: false 
+                }
+            }).then(() => {
+                console.log("Anúncio In-App exibido com sucesso.");
+            }).catch(e => {
+                console.error("Erro ao exibir o anúncio In-App: ", e);
+                alert("Houve um erro ao tentar exibir o anúncio In-App.");
+            });
+        }
+    </script>
+</body>
+</html>
