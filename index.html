@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Mini App</title>
+
+    
+    <script async src='//whephiwums.com/sdk.js' data-zone='9094972' data-sdk='show_9094972'></script>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f4f4f9;
+            color: #333;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 15px;
+            font-size: 26px;
+            color: #2c3e50;
+        }
+
+        .card {
+            background: #fff;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .points {
+            font-size: 28px;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .reward-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            margin-top: 10px;
+            color: #555;
+        }
+
+        .flag {
+            width: 34px;
+            height: 24px;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Olá, <span id="user">Usuário</span>!</h1>
+
+    <div class="card">
+        <div class="points">
+            Pontos: <span id="pontos">0.000</span> €
+        </div>
+
+        <div class="reward-info">
+            <img id="country-flag" class="flag" src="" alt="Bandeira">
+            <span id="reward-amount">Valor do Prêmio: 0.000 €</span>
+        </div>
+    </div>
+
+    <button onclick="mostrarPopupRecompensa()">Assistir Anúncio (Rewarded)</button>
+    <button onclick="fecharApp()">Fechar App</button>
+
+    <div class="footer">
+        © 2025 Mini App
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            let tg = window.Telegram.WebApp;
+            tg.expand();
+
+            // Exibe o nome do usuário
+            document.getElementById("user").innerText = tg.initDataUnsafe?.user?.first_name || "Usuário";
+
+            // Carrega pontos salvos
+            let pontos = parseFloat(localStorage.getItem('pontos')) || 0;
+            atualizarPontos();
+
+            // Recompensas por país (valores fictícios)
+            const cpmRewards = {
+                "US": 0.010,
+                "BR": 0.005,
+                "IN": 0.003,
+                "MX": 0.004,
+                "DE": 0.006,
+                "DEFAULT": 0.002
+            };
+
+            let userCountry = "DEFAULT";
+            let rewardAmount = cpmRewards["DEFAULT"];
+            const flagElement = document.getElementById("country-flag");
+
+            // Detectar país via API gratuita
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                
+                if (data && data.country_code) {
+                    userCountry = data.country_code.toUpperCase();
+                    rewardAmount = cpmRewards[userCountry] || cpmRewards["DEFAULT"];
+
+                    // Atualiza o valor do prêmio
+                    document.getElementById("reward-amount").innerText = `Valor do Prêmio: ${rewardAmount.toFixed(3)} €`;
+
+                    // Atualiza a bandeira
+                    flagElement.src = `https://flagcdn.com/w40/${userCountry.toLowerCase()}.png`;
+                } else {
+                    console.warn("País não detectado, usando valor padrão.");
+                    flagElement.src = `https://flagcdn.com/w40/un.png`; // Bandeira padrão
+                }
+            } catch (error) {
+                console.error("Erro ao detectar o país:", error);
+                flagElement.src = `https://flagcdn.com/w40/un.png`; // Bandeira padrão
+            }
+
+            function fecharApp() {
+                tg.close();
+            }
+
+            function atualizarPontos() {
+                document.getElementById("pontos").innerText = pontos.toFixed(3);
+            }
+
+            function salvarPontos() {
+                localStorage.setItem('pontos', pontos.toFixed(3));
+            }
+
+            window.mostrarPopupRecompensa = function() {
+                // Simulação de anúncio (enquanto o SDK não funciona)
+                pontos += rewardAmount;
+                atualizarPontos();
+                salvarPontos();
+                alert(`Você assistiu ao anúncio e ganhou ${rewardAmount.toFixed(3)} €!`);
+            };
+        });
+    </script>
+</body>
+</html>
