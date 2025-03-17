@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Mini App</title>
+
+    <script async src='//whephiwums.com/sdk.js' data-zone='9094972' data-sdk='show_9094972'></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .points {
+            background: #eaf7ea;
+            border: 2px solid #27ae60;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+            margin-bottom: 20px;
+        }
+
+        .flag {
+            width: 32px;
+            height: 24px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            width: 100%;
+            max-width: 300px;
+            padding: 15px;
+            margin-top: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:nth-child(odd) {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        button:nth-child(odd):hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        button:nth-child(even) {
+            background-color: #2ecc71;
+            color: #fff;
+        }
+
+        button:nth-child(even):hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <h1>Olá, <span id="user">Usuário</span>!</h1>
+
+    <div class="points">
+        Pontos: <span id="pontos">0.000</span> €
+        <img id="flag" class="flag" src="" alt="Bandeira">
+    </div>
+
+    <button onclick="fecharApp()">Fechar App</button>
+    <button onclick="mostrarPopup()">Mostrar Popup</button>
+    <button onclick="mostrarPopupRecompensa()">Assistir Anúncio (Rewarded)</button>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async function() {
+            const tg = window.Telegram.WebApp;
+            tg.expand();
+
+            const userName = tg.initDataUnsafe?.user?.first_name || "Usuário";
+            document.getElementById("user").innerText = userName;
+
+            let pontos = parseFloat(localStorage.getItem('pontos')) || 0;
+            atualizarPontos();
+
+            const rewardPerCountry = {
+                'US': 0.005,
+                'BR': 0.002,
+                'IN': 0.003,
+                'DE': 0.004,
+                'FR': 0.004,
+                'DEFAULT': 0.002
+            };
+
+            const userCountry = await fetch('https://ipapi.co/json/')
+                .then(res => res.json())
+                .then(data => data.country_code)
+                .catch(() => 'DEFAULT');
+
+            const reward = rewardPerCountry[userCountry] || rewardPerCountry.DEFAULT;
+            document.getElementById("flag").src = `https://flagcdn.com/32x24/${userCountry.toLowerCase()}.png`;
+
+            window.fecharApp = function() {
+                tg.close();
+            };
+
+            function atualizarPontos() {
+                document.getElementById("pontos").innerText = pontos.toFixed(3);
+            }
+
+            function salvarPontos() {
+                localStorage.setItem('pontos', pontos.toFixed(3));
+            }
+
+            window.mostrarPopup = function() {
+                if (typeof show_9094972 === "function") {
+                    show_9094972('pop').then(() => {
+                        alert('Você assistiu ao Popup!');
+                    }).catch(e => {
+                        alert("Erro ao tentar exibir o Popup.");
+                    });
+                }
+            };
+
+            window.mostrarPopupRecompensa = function() {
+                if (typeof show_9094972 === "function") {
+                    show_9094972().then(() => {
+                        pontos += reward;
+                        atualizarPontos();
+                        salvarPontos();
+                        alert(`Você ganhou ${reward.toFixed(3)} €!`);
+                    }).catch(e => {
+                        alert("Erro ao tentar exibir o anúncio recompensado.");
+                    });
+                }
+            };
+        });
+    </script>
+</body>
+</html>
